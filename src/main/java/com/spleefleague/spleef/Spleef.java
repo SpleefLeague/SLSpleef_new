@@ -9,7 +9,8 @@ package com.spleefleague.spleef;
 import com.mongodb.client.MongoDatabase;
 import com.spleefleague.core.Core;
 import com.spleefleague.core.game.Battle;
-import com.spleefleague.core.menu.InventoryMenu;
+import com.spleefleague.core.menu.InventoryMenuAPI;
+import com.spleefleague.core.menu.InventoryMenuItem;
 import com.spleefleague.core.player.PlayerManager;
 import com.spleefleague.core.plugin.CorePlugin;
 import com.spleefleague.spleef.commands.*;
@@ -18,12 +19,12 @@ import com.spleefleague.spleef.game.Shovel;
 import com.spleefleague.spleef.game.SpleefField;
 import com.spleefleague.spleef.player.SpleefPlayer;
 import com.spleefleague.spleef.game.SpleefMode;
-import com.spleefleague.spleef.game.splegg.SpleggGun;
-import com.spleefleague.spleef.game.classic.ClassicSpleefArena;
-import com.spleefleague.spleef.game.multi.MultiSpleefArena;
-import com.spleefleague.spleef.game.power.Power;
-import com.spleefleague.spleef.game.power.PowerSpleefArena;
-import com.spleefleague.spleef.game.splegg.SpleggArena;
+import com.spleefleague.spleef.game.splegg.classic.SpleggGun;
+import com.spleefleague.spleef.game.spleef.classic.ClassicSpleefArena;
+import com.spleefleague.spleef.game.spleef.multi.MultiSpleefArena;
+import com.spleefleague.spleef.game.spleef.power.Power;
+import com.spleefleague.spleef.game.spleef.power.PowerSpleefArena;
+import com.spleefleague.spleef.game.splegg.classic.SpleggArena;
 import com.spleefleague.spleef.game.team.TeamSpleefArena;
 import org.bukkit.Material;
 
@@ -34,7 +35,8 @@ public class Spleef extends CorePlugin<SpleefPlayer> {
     
     private static Spleef instance;
     
-    private InventoryMenu spleefMenu;
+    private InventoryMenuItem spleefMenuItem;
+    private InventoryMenuItem spleggMenuItem;
     
     @Override
     public void init() {
@@ -62,8 +64,6 @@ public class Spleef extends CorePlugin<SpleefPlayer> {
         SpleefField.init();
         SpleefArena.init();
         initMenu();
-        
-        playerManager.initOnline();
     }
     
     @Override
@@ -75,34 +75,50 @@ public class Spleef extends CorePlugin<SpleefPlayer> {
         return instance;
     }
     
-    public InventoryMenu getSpleefMenu() {
-        return spleefMenu;
+    public InventoryMenuItem getSpleefMenu() {
+        return spleefMenuItem;
+    }
+    public InventoryMenuItem getSpleggMenu() {
+        return spleggMenuItem;
     }
     
     public void initMenu() {
-        spleefMenu = InventoryMenu.createMenu()
-                .setTitle("Spleef Menu")
+        spleefMenuItem = InventoryMenuAPI.createItem()
                 .setName("Spleef")
                 .setDescription("A competitive gamemode in which you must knock your opponent into the water while avoiding a similar fate.\n\nThis is not with any ordinary weapon; the weapon of choice is a shovel, and you must destroy the blocks underneath your foe!")
-                .setDisplayItem(Material.DIAMOND_SHOVEL, 1561);
+                .setDisplayItem(Material.DIAMOND_SHOVEL, 1561)
+                .createLinkedContainer("Spleef Menu");
         
-        spleefMenu.addMenuItem(ClassicSpleefArena.createMenu(), 2);
-        spleefMenu.addMenuItem(PowerSpleefArena.createMenu(), 3);
-        spleefMenu.addMenuItem(TeamSpleefArena.createMenu(), 5);
-        spleefMenu.addMenuItem(MultiSpleefArena.createMenu(), 6);
-        spleefMenu.addStaticItem(Shovel.createMenu(), 4, 4);
+        spleefMenuItem.getLinkedContainer().addMenuItem(InventoryMenuAPI.createLockedMenuItem("Other"), 0, 2);
+        spleefMenuItem.getLinkedContainer().addMenuItem(InventoryMenuAPI.createLockedMenuItem("Other"), 1, 3);
+        spleefMenuItem.getLinkedContainer().addMenuItem(InventoryMenuAPI.createLockedMenuItem("Bow Spleef"), 2, 2);
+        spleefMenuItem.getLinkedContainer().addMenuItem(TeamSpleefArena.createMenu(), 3, 3);
+        spleefMenuItem.getLinkedContainer().addMenuItem(ClassicSpleefArena.createMenu(), 4, 2);
+        spleefMenuItem.getLinkedContainer().addMenuItem(MultiSpleefArena.createMenu(), 5, 3);
+        spleefMenuItem.getLinkedContainer().addMenuItem(PowerSpleefArena.createMenu(), 6, 2);
+        spleefMenuItem.getLinkedContainer().addMenuItem(InventoryMenuAPI.createLockedMenuItem("Other"), 7, 3);
+        spleefMenuItem.getLinkedContainer().addMenuItem(InventoryMenuAPI.createLockedMenuItem("Other"), 8, 2);
+        spleefMenuItem.getLinkedContainer().addStaticItem(Shovel.createMenu(), 4, 4);
         
-        InventoryMenu.getHotbarMenu(InventoryMenu.InvMenuType.SLMENU).addMenuItem(spleefMenu, 0, 0);
+        InventoryMenuAPI.getHotbarItem(InventoryMenuAPI.InvMenuType.SLMENU).getLinkedContainer().addMenuItem(spleefMenuItem, 4, 2);
         
-        spleefMenu = InventoryMenu.createMenu()
-                .setTitle("Splegg Menu")
-                .setName("Spleef")
+        spleggMenuItem = InventoryMenuAPI.createItem()
+                .setName("Splegg")
                 .setDescription("Imagine the following description included the word egg in it somewhere.\n\nA competitive gamemode in which you must knock your opponent into the water while avoiding a similar fate.\n\nThis is not with any ordinary weapon; the weapon of choice is a shovel, and you must destroy the blocks underneath your foe!")
-                .setDisplayItem(Material.EGG);
-        spleefMenu.addMenuItem(SpleggArena.createMenu(), 4);
-        spleefMenu.addStaticItem(SpleggGun.createMenu(), 4, 4);
+                .setDisplayItem(Material.EGG)
+                .createLinkedContainer("Splegg Menu");
+        spleggMenuItem.getLinkedContainer().addMenuItem(InventoryMenuAPI.createLockedMenuItem("Other"), 0, 2);
+        spleggMenuItem.getLinkedContainer().addMenuItem(InventoryMenuAPI.createLockedMenuItem("Other"), 1, 3);
+        spleggMenuItem.getLinkedContainer().addMenuItem(InventoryMenuAPI.createLockedMenuItem("Other"), 2, 2);
+        spleggMenuItem.getLinkedContainer().addMenuItem(InventoryMenuAPI.createLockedMenuItem("TeamSplegg"), 3, 3);
+        spleggMenuItem.getLinkedContainer().addMenuItem(SpleggArena.createMenu(), 4, 2);
+        spleggMenuItem.getLinkedContainer().addMenuItem(InventoryMenuAPI.createLockedMenuItem("MultiSplegg"), 5, 3);
+        spleggMenuItem.getLinkedContainer().addMenuItem(InventoryMenuAPI.createLockedMenuItem("Other"), 6, 2);
+        spleggMenuItem.getLinkedContainer().addMenuItem(InventoryMenuAPI.createLockedMenuItem("Other"), 7, 3);
+        spleggMenuItem.getLinkedContainer().addMenuItem(InventoryMenuAPI.createLockedMenuItem("Other"), 8, 2);
+        spleggMenuItem.getLinkedContainer().addStaticItem(SpleggGun.createMenu(), 4, 4);
         
-        InventoryMenu.getHotbarMenu(InventoryMenu.InvMenuType.SLMENU).addMenuItem(spleefMenu, 0, 2);
+        InventoryMenuAPI.getHotbarItem(InventoryMenuAPI.InvMenuType.SLMENU).getLinkedContainer().addMenuItem(spleggMenuItem, 5, 3);
     }
     
     public void initCommands() {

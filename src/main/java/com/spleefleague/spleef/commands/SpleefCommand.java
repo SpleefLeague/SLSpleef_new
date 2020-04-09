@@ -47,7 +47,7 @@ public class SpleefCommand extends CommandTemplate {
     
     @CommandAnnotation
     public void spleef(CorePlayer sender) {
-        sender.setInventoryMenu(Spleef.getInstance().getSpleefMenu());
+        sender.setInventoryMenuItem(Spleef.getInstance().getSpleefMenu());
     }
     
     @CommandAnnotation

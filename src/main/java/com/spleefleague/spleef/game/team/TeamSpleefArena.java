@@ -9,7 +9,8 @@ package com.spleefleague.spleef.game.team;
 import com.spleefleague.core.Core;
 import com.spleefleague.core.annotation.DBField;
 import com.spleefleague.core.game.Arena;
-import com.spleefleague.core.menu.InventoryMenu;
+import com.spleefleague.core.menu.InventoryMenuAPI;
+import com.spleefleague.core.menu.InventoryMenuItem;
 import com.spleefleague.core.party.Party;
 import com.spleefleague.spleef.Spleef;
 import com.spleefleague.spleef.game.SpleefArena;
@@ -32,13 +33,13 @@ public class TeamSpleefArena extends SpleefArena {
         this.mode = SpleefMode.TEAM.getArenaMode();
     }
     
-    public static InventoryMenu createMenu() {
+    public static InventoryMenuItem createMenu() {
         String mainColor = ChatColor.YELLOW + "" + ChatColor.BOLD;
-        InventoryMenu spleefMenu = InventoryMenu.createMenu()
-                .setTitle("Team Spleef Menu")
+        InventoryMenuItem spleefMenu = InventoryMenuAPI.createItem()
+                .createLinkedContainer("Team Spleef Menu")
                 .setName(mainColor + "Team Spleef")
                 .setDescription("United with a team of the same color, conquer your foes with your allies in this multiplayer gamemode.")
-                .setAvailable(cp -> {
+                .setAvailability(cp -> {
                     Party party = cp.getParty();
                     if (party == null) {
                         Core.sendMessageToPlayer(cp, "You have to be in a party for TeamSpleef!");
@@ -48,23 +49,24 @@ public class TeamSpleefArena extends SpleefArena {
                 })
                 .setDisplayItem(Material.LEATHER_HELMET, 56);
         
-        InventoryMenu spleefMapMenu = InventoryMenu.createMenu()
-                .setTitle("Map Select: Team Spleef")
+        InventoryMenuItem spleefMapMenu = InventoryMenuAPI.createItem()
                 .setName("Map Select: Team Spleef")
-                .setDisplayItem(new ItemStack(Material.FILLED_MAP));
+                .setDisplayItem(new ItemStack(Material.FILLED_MAP))
+                .createLinkedContainer("Map Select: Team Spleef");
         
-        spleefMapMenu.addMenuItem(InventoryMenu.createItem()
+        spleefMapMenu.getLinkedContainer().addMenuItem(InventoryMenuAPI.createItem()
                 .setName("Random Arena")
                 .setDisplayItem(new ItemStack(Material.EMERALD))
                 .setAction(cp -> Spleef.getInstance().queuePlayer(SpleefMode.TEAM.getArenaMode(), Spleef.getInstance().getPlayers().get(cp))));
         
-        getArenas(SpleefMode.TEAM.getArenaMode()).forEach((String s, Arena arena) -> spleefMapMenu.addMenuItem(InventoryMenu.createItem()
-                .setName(arena.getDisplayName())
-                .setDescription(cp -> arena.getDescription())
-                .setDisplayItem(cp -> { return new ItemStack(Material.FILLED_MAP); })
-                .setAction(cp -> Spleef.getInstance().queuePlayer(SpleefMode.TEAM.getArenaMode(), Spleef.getInstance().getPlayers().get(cp), arena))));
+        getArenas(SpleefMode.TEAM.getArenaMode()).forEach((String s, Arena arena) -> spleefMapMenu.getLinkedContainer()
+                .addMenuItem(InventoryMenuAPI.createItem()
+                        .setName(arena.getDisplayName())
+                        .setDescription(cp -> arena.getDescription())
+                        .setDisplayItem(cp -> { return new ItemStack(Material.FILLED_MAP); })
+                        .setAction(cp -> Spleef.getInstance().queuePlayer(SpleefMode.TEAM.getArenaMode(), Spleef.getInstance().getPlayers().get(cp), arena))));
         
-        spleefMenu.addMenuItem(spleefMapMenu, 0);
+        spleefMenu.getLinkedContainer().addMenuItem(spleefMapMenu, 0);
         
         return spleefMenu;
     }
