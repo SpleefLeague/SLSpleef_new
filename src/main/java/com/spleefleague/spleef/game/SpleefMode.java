@@ -6,15 +6,11 @@
 
 package com.spleefleague.spleef.game;
 
-import com.spleefleague.spleef.game.splegg.classic.SpleggBattle;
-import com.spleefleague.spleef.game.splegg.classic.SpleggArena;
-import com.spleefleague.spleef.game.spleef.power.PowerSpleefArena;
-import com.spleefleague.spleef.game.spleef.power.PowerSpleefBattle;
-import com.spleefleague.spleef.game.spleef.multi.MultiSpleefBattle;
-import com.spleefleague.spleef.game.spleef.multi.MultiSpleefArena;
-import com.spleefleague.spleef.game.spleef.classic.ClassicSpleefBattle;
-import com.spleefleague.spleef.game.spleef.classic.ClassicSpleefArena;
 import com.spleefleague.core.game.ArenaMode;
+import com.spleefleague.spleef.game.classic.*;
+import com.spleefleague.spleef.game.multi.*;
+import com.spleefleague.spleef.game.power.*;
+import com.spleefleague.spleef.game.splegg.*;
 import com.spleefleague.spleef.game.team.*;
 
 /**

@@ -6,18 +6,19 @@
 
 package com.spleefleague.spleef.game;
 
+import com.google.common.collect.Sets;
 import com.mongodb.client.MongoCollection;
 import com.spleefleague.core.annotation.DBLoad;
 import com.spleefleague.core.chat.Chat;
-import com.spleefleague.core.menu.InventoryMenuAPI;
-import com.spleefleague.core.menu.InventoryMenuContainer;
-import com.spleefleague.core.menu.InventoryMenuItem;
+import com.spleefleague.core.menu.InventoryMenu;
 import com.spleefleague.core.player.CorePlayer;
 import com.spleefleague.core.util.CoreUtils;
 import com.spleefleague.core.vendor.VendorItem;
 import com.spleefleague.spleef.Spleef;
 import com.spleefleague.spleef.player.SpleefPlayer;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import org.bson.Document;
@@ -31,6 +32,7 @@ import org.bukkit.inventory.meta.Damageable;
 public class Shovel extends VendorItem {
     
     private static final Map<Integer, Shovel> shovels = new HashMap<>();
+    private static ItemStack LOCKED_ICON;
     private static MongoCollection<Document> shovelCollection;
     
     public static void init() {
@@ -40,6 +42,8 @@ public class Shovel extends VendorItem {
             shovel.load(doc);
             shovels.put(shovel.getDamage(), shovel);
         });
+        
+        LOCKED_ICON = InventoryMenu.createItem(Material.DIAMOND_AXE, 12);
     }
     
     public static void save(Shovel shovel) {
@@ -86,8 +90,8 @@ public class Shovel extends VendorItem {
         return null;
     }
     
-    private static InventoryMenuItem createActiveShovelMenuItem() {
-        return InventoryMenuAPI.createItem()
+    private static InventoryMenu createActiveShovelMenuItem() {
+        return InventoryMenu.createItem()
                 .setName(cp -> {
                     SpleefPlayer sp = Spleef.getInstance().getPlayers().get(cp.getPlayer());
                     return sp.getActiveShovel().getDisplayName();
@@ -100,17 +104,17 @@ public class Shovel extends VendorItem {
                 }).setCloseOnAction(false);
     }
     
-    public static InventoryMenuItem createMenuTyped(InventoryMenuItem menuItem, ShovelType shovelType) {
+    public static InventoryMenu createMenuTyped(InventoryMenu menu, ShovelType shovelType) {
         for (Shovel shovel : shovels.values()) {
             if (shovel.getShovelType().equals(shovelType)) {
-                InventoryMenuItem smi = InventoryMenuAPI.createItem()
+                InventoryMenu smi = InventoryMenu.createItem()
                         .setName(cp -> {
                             SpleefPlayer sp = Spleef.getInstance().getPlayers().get(cp.getPlayer());
                             return sp.hasShovel(shovel.getDamage()) ? shovel.getDisplayName() : "Locked";
                         })
                         .setDisplayItem(cp -> {
                             SpleefPlayer sp = Spleef.getInstance().getPlayers().get(cp.getPlayer());
-                            return sp.hasShovel(shovel.getDamage()) ? shovel.getItem() : InventoryMenuAPI.getLockedIcon();
+                            return sp.hasShovel(shovel.getDamage()) ? shovel.getItem() : LOCKED_ICON;
                         })
                         .setDescription(cp -> {
                             SpleefPlayer sp = Spleef.getInstance().getPlayers().get(cp.getPlayer());
@@ -121,54 +125,73 @@ public class Shovel extends VendorItem {
                             sp.setActiveShovel(shovel.damage);
                         })
                         .setCloseOnAction(false);
-                menuItem.getLinkedContainer().addMenuItem(smi);
+                menu.addMenuItem(smi);
             }
         }
-        menuItem.getLinkedContainer().addStaticItem(createActiveShovelMenuItem(), 4, 4);
-        return menuItem;
+        menu.addStaticItem(createActiveShovelMenuItem(), 4, 5);
+        return menu;
     }
     
-    public static InventoryMenuItem createMenu() {
-        InventoryMenuItem shovelMenu = InventoryMenuAPI.createItem()
+    public static InventoryMenu createMenu() {
+        InventoryMenu shovelMenu = InventoryMenu.createMenu()
+                .setTitle("Active Shovel")
                 .setName("Shovels")
                 .setDescription("Set your active shovel")
-                .setDisplayItem(cp -> {
+                .setDisplayItem(cp -> { 
                         SpleefPlayer sp = Spleef.getInstance().getPlayers().get(cp.getPlayer());
                         return sp.getActiveShovel().getItem();
-                        })
-                .createLinkedContainer("Active Shovel");
-        shovelMenu.getLinkedContainer()
-                .addStaticItem(createActiveShovelMenuItem(), 4, 4);
+                        });
+        shovelMenu.addStaticItem(createActiveShovelMenuItem(), 4, 5);
         
-        shovelMenu.getLinkedContainer().addMenuItem(createMenuTyped(InventoryMenuAPI.createItem()
+        shovelMenu.addMenuItem(InventoryMenu.createItem()
                 .setName("Default Shovels")
                 .setDescription("Shovels you have unlocked by default!")
-                .setDisplayItem(Material.LIGHT_BLUE_BANNER)
-                .createLinkedContainer("Default Shovels"), ShovelType.DEFAULT), 4, 2);
+                .setDisplayItem(new ItemStack(Material.LIGHT_BLUE_BANNER))
+                .setAction(cp -> { cp.setInventoryMenu(createMenuTyped(InventoryMenu.createMenu()
+                        .setTitle("Default Shovels")
+                        .addBackButton(shovelMenu),
+                        ShovelType.DEFAULT)); })
+                .setCloseOnAction(false));
         
-        shovelMenu.getLinkedContainer().addMenuItem(createMenuTyped(InventoryMenuAPI.createItem()
+        shovelMenu.addMenuItem(InventoryMenu.createItem()
                 .setName("Hidden Shovels")
-                .setDescription("Shh-ovels!")
-                .setDisplayItem(Material.BLACK_BANNER)
-                .createLinkedContainer("Hidden Shovels"), ShovelType.HIDDEN), 3, 3);
+                .setDescription("Shhhovels!")
+                .setDisplayItem(new ItemStack(Material.BLACK_BANNER))
+                .setAction(cp -> { cp.setInventoryMenu(createMenuTyped(InventoryMenu.createMenu()
+                        .setTitle("Hidden Shovels")
+                        .addBackButton(shovelMenu),
+                        ShovelType.HIDDEN)); })
+                .setCloseOnAction(false));
         
-        shovelMenu.getLinkedContainer().addMenuItem(createMenuTyped(InventoryMenuAPI.createItem()
+        shovelMenu.addMenuItem(InventoryMenu.createItem()
                 .setName("Event Shovels")
                 .setDescription("Unlock these by attending special events!")
-                .setDisplayItem(Material.RED_BANNER)
-                .createLinkedContainer("Event Shovels"), ShovelType.EVENT), 2, 2);
+                .setDisplayItem(new ItemStack(Material.RED_BANNER))
+                .setAction(cp -> { cp.setInventoryMenu(createMenuTyped(InventoryMenu.createMenu()
+                        .setTitle("Event Shovels")
+                        .addBackButton(shovelMenu),
+                        ShovelType.EVENT)); })
+                .setCloseOnAction(false));
         
-        shovelMenu.getLinkedContainer().addMenuItem(createMenuTyped(InventoryMenuAPI.createItem()
+        shovelMenu.addMenuItem(InventoryMenu.createItem()
                 .setName("Tournament Shovels")
                 .setDescription("Unlock these by winning tournaments!")
-                .setDisplayItem(Material.ORANGE_BANNER)
-                .createLinkedContainer("Tournament Shovels"), ShovelType.TOURNAMENT), 5, 3);
+                .setDisplayItem(new ItemStack(Material.ORANGE_BANNER))
+                .setAction(cp -> { cp.setInventoryMenu(createMenuTyped(InventoryMenu.createMenu()
+                        .setTitle("Tournament Shovels")
+                        .addBackButton(shovelMenu),
+                        ShovelType.TOURNAMENT)); })
+                .setCloseOnAction(false));
         
-        shovelMenu.getLinkedContainer().addMenuItem(createMenuTyped(InventoryMenuAPI.createItem()
+        shovelMenu.addMenuItem(InventoryMenu.createItem()
                 .setName("Purchased Shovels")
                 .setDescription("Shovels you have unlocked by default!")
-                .setDisplayItem(Material.GREEN_BANNER)
-                .createLinkedContainer("Purchased Shovels"), ShovelType.SHOP), 6, 2);
+                .setDisplayItem(new ItemStack(Material.GREEN_BANNER))
+                .setAction(cp -> { cp.setInventoryMenu(createMenuTyped(InventoryMenu.createMenu()
+                        .setTitle("Purchased Shovels")
+                        .addBackButton(shovelMenu),
+                        ShovelType.SHOP)); })
+                .setCloseOnAction(false));
         
         return shovelMenu;
     }
