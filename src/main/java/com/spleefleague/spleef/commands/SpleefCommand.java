@@ -7,8 +7,8 @@
 package com.spleefleague.spleef.commands;
 
 import com.google.common.collect.Lists;
-import com.spleefleague.core.annotation.CommandAnnotation;
-import com.spleefleague.core.annotation.LiteralArg;
+import com.spleefleague.core.command.CommandAnnotation;
+import com.spleefleague.core.command.LiteralArg;
 import com.spleefleague.core.command.CommandTemplate;
 import com.spleefleague.core.error.CoreError;
 import com.spleefleague.core.game.Arena;
@@ -18,7 +18,7 @@ import com.spleefleague.spleef.Spleef;
 import com.spleefleague.spleef.game.SpleefMode;
 import com.spleefleague.spleef.player.SpleefPlayer;
 import javax.annotation.Nullable;
-import com.spleefleague.core.annotation.OptionArg;
+import com.spleefleague.core.command.OptionArg;
 import com.spleefleague.core.party.Party;
 
 /**
@@ -32,7 +32,6 @@ public class SpleefCommand extends CommandTemplate {
         this.setOptions("classicArenas", (cp) -> Arena.getArenaNames(SpleefMode.CLASSIC.getArenaMode()));
         this.setOptions("multiArenas", (cp) -> Arena.getArenaNames(SpleefMode.MULTI.getArenaMode()));
         this.setOptions("powerArenas", (cp) -> Arena.getArenaNames(SpleefMode.POWER.getArenaMode()));
-        this.setOptions("spleggArenas", (cp) -> Arena.getArenaNames(SpleefMode.SPLEGG.getArenaMode()));
         this.setOptions("teamArenas", (cp) -> Arena.getArenaNames(SpleefMode.TEAM.getArenaMode()));
         this.setOptions("wcArenas", (cp) -> Arena.getArenaNames(SpleefMode.WC.getArenaMode()));
     }
@@ -42,7 +41,7 @@ public class SpleefCommand extends CommandTemplate {
             @LiteralArg(value="debug") String l) {
         Party.createParty(sender);
         SpleefPlayer sp = Spleef.getInstance().getPlayers().get(sender);
-        Spleef.getInstance().getBattleManager(SpleefMode.SPLEGG.getArenaMode()).startMatch(Lists.newArrayList(sp, sp), "temple");
+        Spleef.getInstance().getBattleManager(SpleefMode.CLASSIC.getArenaMode()).startMatch(Lists.newArrayList(sp, sp), "temple");
     }
     
     @CommandAnnotation
@@ -57,21 +56,15 @@ public class SpleefCommand extends CommandTemplate {
     }
     
     @CommandAnnotation
-    public void spleefMulti(CorePlayer sender, @LiteralArg(value="multi") String l, @Nullable @OptionArg(listName="multiArenas") String arena) {
+    public void spleefMulti(CorePlayer sender, @LiteralArg(value="multi") String l) {
         SpleefPlayer sp = Spleef.getInstance().getPlayers().get(sender);
-        Spleef.getInstance().queuePlayer(SpleefMode.MULTI.getArenaMode(), sp, Arena.getByName(arena, SpleefMode.MULTI.getArenaMode()));
+        Spleef.getInstance().queuePlayer(SpleefMode.MULTI.getArenaMode(), sp);
     }
     
     @CommandAnnotation
     public void spleefPower(CorePlayer sender, @LiteralArg(value="power") String l, @Nullable @OptionArg(listName="powerArenas") String arena) {
         SpleefPlayer sp = Spleef.getInstance().getPlayers().get(sender);
         Spleef.getInstance().queuePlayer(SpleefMode.POWER.getArenaMode(), sp, Arena.getByName(arena, SpleefMode.POWER.getArenaMode()));
-    }
-    
-    @CommandAnnotation
-    public void spleefSplegg(CorePlayer sender, @LiteralArg(value="splegg") String l, @Nullable @OptionArg(listName="spleggArenas") String arena) {
-        SpleefPlayer sp = Spleef.getInstance().getPlayers().get(sender);
-        Spleef.getInstance().queuePlayer(SpleefMode.SPLEGG.getArenaMode(), sp, Arena.getByName(arena, SpleefMode.SPLEGG.getArenaMode()));
     }
     
     @CommandAnnotation

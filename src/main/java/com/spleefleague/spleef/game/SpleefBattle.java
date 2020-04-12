@@ -18,6 +18,7 @@ import com.spleefleague.core.util.Dimension;
 import com.spleefleague.core.util.database.DBPlayer;
 import com.spleefleague.spleef.Spleef;
 import com.spleefleague.spleef.player.SpleefPlayer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,13 +42,15 @@ public class SpleefBattle extends Battle<SpleefPlayer, SpleefArena> {
     protected class BattlePlayer {
         public SpleefPlayer player;
         public int points;
+        public int knockouts;
         public boolean fallen;
         public Location spawn;
         
         public BattlePlayer(SpleefPlayer player, Location spawn) {
             this.player = player;
-            points = 0;
-            fallen = false;
+            this.points = 0;
+            this.knockouts = 0;
+            this.fallen = false;
             this.spawn = spawn;
         }
     }
@@ -66,40 +69,76 @@ public class SpleefBattle extends Battle<SpleefPlayer, SpleefArena> {
     protected static final int WIN_POINTS = 5;
     protected int playToPoints = WIN_POINTS;
     
+    protected static final int MAX_SEEN_SCORES = 5;
+    protected int seenScores = 0;
+    protected List<BattlePlayer> sortedBattlers = new ArrayList<>();
+    
     protected int remainingPlayers = 0;
     
     public SpleefBattle(List<DBPlayer> players, SpleefArena arena) {
         super(Spleef.getInstance(), players, arena);
     }
     
+    public void sortBattlers() {
+        sortedBattlers.clear();
+        for (BattlePlayer bp : battlers.values()) {
+            boolean inserted = false;
+            int i = 0;
+            for (BattlePlayer bp2 : sortedBattlers) {
+                if (bp.points > bp2.points) {
+                    sortedBattlers.add(i, bp);
+                    inserted = true;
+                    break;
+                }
+                i++;
+            }
+            if (!inserted) {
+                sortedBattlers.add(bp);
+            }
+        }
+    }
+    
     @Override
     public void updateScoreboard() {
         chatGroup.setScoreboardName(Chat.DEFAULT + getRuntimeString() + "     " + Chat.SCORE + "Score");
         chatGroup.setTeamScore("PlayTo", playToPoints);
-        for (BattlePlayer bp : battlers.values()) {
-            CorePlayer cp = Core.getInstance().getPlayers().get(bp.player);
-            chatGroup.setTeamScore(cp.getName(), bp.points);
+        
+        for (int i = 0; i < sortedBattlers.size() && i < seenScores; i++) {
+            BattlePlayer bp = sortedBattlers.get(i);
+            chatGroup.setTeamName("PLACE" + i, Chat.PLAYER_NAME + bp.player.getName());
+            chatGroup.setTeamScore("PLACE" + i, bp.points);
         }
     }
     
+    @Override
+    public void addBattler(DBPlayer dbp) {
+        SpleefPlayer sp = Spleef.getInstance().getPlayers().get(dbp);
+        players.add(sp);
+        addBattler(sp, 0);
+        System.out.println("Adding battler?");
+    }
+    
     protected void addBattler(SpleefPlayer sp, int spawn) {
+        super.addBattler(sp);
         battlers.put(sp, new BattlePlayer(sp, arena.getSpawns().get(spawn)));
         sp.joinBattle(this, BattleState.BATTLER);
 
         sp.getPlayer().getInventory().setHeldItemSlot(0);
         sp.getPlayer().getInventory().clear();
-
-        sp.setGameMode(GameMode.SURVIVAL);
-
-        chatGroup.addPlayer(sp);
     }
     
     protected void setupBattlers() {
         int i = 0;
+        seenScores = 0;
         for (SpleefPlayer sp : players) {
             addBattler(sp, i);
+            if (i < MAX_SEEN_SCORES) {
+                chatGroup.addTeam("PLACE" + seenScores, "?" + seenScores);
+                seenScores++;
+            }
             i++;
         }
+        sortBattlers();
     }
     
     @Override
@@ -120,7 +159,7 @@ public class SpleefBattle extends Battle<SpleefPlayer, SpleefArena> {
     
     protected void setupScoreboardTeams() {
         for (BattlePlayer bp : battlers.values()) {
-            chatGroup.addTeam(bp.player.getName(), Chat.PLAYER_NAME + bp.player.getName());
+            //chatGroup.addTeam(bp.player.getName(), Chat.PLAYER_NAME + bp.player.getName());
         }
     }
     
@@ -134,6 +173,7 @@ public class SpleefBattle extends Battle<SpleefPlayer, SpleefArena> {
     
     protected void endRound(BattlePlayer winner) {
         winner.points++;
+        sortBattlers();
         if (winner.points < playToPoints) {
             Core.getInstance().sendMessage(chatGroup, Chat.PLAYER_NAME + winner.player.getDisplayName() + Chat.DEFAULT + " won the round");
         } else {
@@ -151,6 +191,7 @@ public class SpleefBattle extends Battle<SpleefPlayer, SpleefArena> {
         if (loser == null) {
             loser = winner;
         }
+        applyEloChange(winner);
         Core.getInstance().sendMessage(ChatChannel.getChannel(ChatChannel.Channel.SPLEEF),
                 Chat.PLAYER_NAME + winner.player.getDisplayName() +
                 winner.player.getDisplayElo(getMode()) +
@@ -162,7 +203,6 @@ public class SpleefBattle extends Battle<SpleefPlayer, SpleefArena> {
                 Chat.DEFAULT + "(" +
                 Chat.SCORE + winner.points + Chat.DEFAULT + "-" + Chat.SCORE + loser.points +
                 Chat.DEFAULT + ")");
-        applyEloChange(winner);
         super.endBattle();
     }
     
@@ -186,13 +226,17 @@ public class SpleefBattle extends Battle<SpleefPlayer, SpleefArena> {
         return false;
     }
     
+    protected void resetPlayer(BattlePlayer bp) {
+        bp.fallen = false;
+        bp.player.getPlayer().teleport(bp.spawn);
+        bp.player.setGameMode(gameMode);
+        bp.player.getPlayer().setWalkSpeed(0.2f);
+    }
+    
     @Override
     protected void resetPlayers() {
         remainingPlayers = battlers.size();
-        battlers.forEach((p, bp) -> {
-            bp.fallen = false;
-            p.getPlayer().teleport(bp.spawn);
-        });
+        battlers.forEach((p, bp) -> resetPlayer(bp));
     }
     
     protected void applyEloChange(BattlePlayer winner) {
@@ -277,6 +321,27 @@ public class SpleefBattle extends Battle<SpleefPlayer, SpleefArena> {
     }
     
     @Override
+    public SpleefPlayer getClosestBattler(SpleefPlayer sp) {
+        BattlePlayer closest = null;
+        double closeDist = 0, dist;
+        for (BattlePlayer bp2 : battlers.values()) {
+            if (sp != bp2.player && !bp2.fallen) {
+                dist = sp.getPlayer().getLocation().distance(bp2.player.getPlayer().getLocation());
+                if (closest == null || dist < closeDist) {
+                    closest = bp2;
+                    closeDist = dist;
+                }
+            }
+        }
+        return closest.player;
+    }
+    
+    @Override
+    public boolean isFallen(SpleefPlayer sp) {
+        return battlers.get(sp).fallen;
+    }
+    
+    @Override
     public void requestReset(SpleefPlayer sp) {
         CorePlayer cp = Core.getInstance().getPlayers().get(sp);
         if (resetRequest.getRequester() == null || resetRequest.getRequester().equals(sp)) {
@@ -331,14 +396,42 @@ public class SpleefBattle extends Battle<SpleefPlayer, SpleefArena> {
         Core.getInstance().sendMessage("The match is now set to playto " + Chat.GAMEMODE + playToPoints + Chat.DEFAULT);
     }
     
+    protected BattlePlayer getClosestPlayer(BattlePlayer bp) {
+        BattlePlayer closest = null;
+        double closeDist = 0, dist;
+        for (BattlePlayer bp2 : battlers.values()) {
+            if (bp != bp2 && !bp2.fallen) {
+                dist = bp.player.getPlayer().getLocation().distance(bp2.player.getPlayer().getLocation());
+                if (closest == null || dist < closeDist) {
+                    closest = bp2;
+                    closeDist = dist;
+                }
+            }
+        }
+        return closest;
+    }
+    
     @Override
     protected void failPlayer(SpleefPlayer sp) {
-        System.out.println("fail player spleef battle");
         for (BattlePlayer bp : battlers.values()) {
             if (bp.player.equals(sp)) {
+                if (bp.fallen) return;
                 bp.fallen = true;
                 remainingPlayers--;
                 gameWorld.doFailBlast(sp.getPlayer());
+                if (remainingPlayers > 0) {
+                    BattlePlayer cbp = getClosestPlayer(bp);
+                    if (cbp != null) {
+                        cbp.knockouts++;
+                        sortBattlers();
+                    }
+                    if (remainingPlayers > 1) {
+                        bp.player.setGameMode(GameMode.SPECTATOR);
+                        if (cbp != null) {
+                            gameWorld.setSpectator(bp.player.getPlayer(), cbp.player.getPlayer());
+                        }
+                    }
+                }
                 break;
             }
         }

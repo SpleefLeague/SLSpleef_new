@@ -7,11 +7,13 @@
 package com.spleefleague.spleef.game.splegg.classic;
 
 import com.spleefleague.core.game.Arena;
+import static com.spleefleague.core.game.Arena.getArenas;
 import com.spleefleague.core.menu.InventoryMenuAPI;
 import com.spleefleague.core.menu.InventoryMenuItem;
 import com.spleefleague.spleef.Spleef;
-import com.spleefleague.spleef.game.SpleefArena;
 import com.spleefleague.spleef.game.SpleefMode;
+import com.spleefleague.spleef.game.SpleggArena;
+import com.spleefleague.spleef.game.SpleggMode;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -19,13 +21,13 @@ import org.bukkit.inventory.ItemStack;
 /**
  * @author NickM13
  */
-public class SpleggArena extends SpleefArena {
+public class ClassicSpleggArena extends SpleggArena {
     
-    public SpleggArena() {
-        mode = SpleefMode.SPLEGG.getArenaMode();
+    public ClassicSpleggArena() {
+        this.mode = SpleggMode.CLASSIC.getArenaMode();
     }
     
-    public static InventoryMenuItem createMenu() {
+    public static void createMenu(int x, int y) {
         String mainColor = ChatColor.GREEN + "" + ChatColor.BOLD;
         InventoryMenuItem menuItem = InventoryMenuAPI.createItem()
                 .setName(mainColor + "Classic Splegg")
@@ -33,27 +35,20 @@ public class SpleggArena extends SpleefArena {
                 .setDisplayItem(Material.EGG)
                 .createLinkedContainer("Splegg Menu");
         
-        InventoryMenuItem mapMenuItem = InventoryMenuAPI.createItem()
-                .setName("Map Select: Classic Splegg")
-                .setDisplayItem(new ItemStack(Material.FILLED_MAP))
-                .createLinkedContainer("Map Select: Classic Splegg");
-        
-        mapMenuItem.getLinkedContainer().addMenuItem(InventoryMenuAPI.createItem()
+        menuItem.getLinkedContainer().addMenuItem(InventoryMenuAPI.createItem()
                 .setName("Random Arena")
                 .setDisplayItem(new ItemStack(Material.EMERALD))
-                .setAction(cp -> Spleef.getInstance().queuePlayer(SpleefMode.SPLEGG.getArenaMode(), Spleef.getInstance().getPlayers().get(cp))));
+                .setAction(cp -> Spleef.getInstance().queuePlayer(SpleggMode.CLASSIC.getArenaMode(), Spleef.getInstance().getPlayers().get(cp))));
         
-        getArenas(SpleefMode.SPLEGG.getArenaMode()).forEach((String s, Arena arena) -> mapMenuItem.getLinkedContainer().addMenuItem(InventoryMenuAPI.createItem()
+        getArenas(SpleggMode.CLASSIC.getArenaMode()).forEach((String s, Arena arena) -> menuItem.getLinkedContainer().addMenuItem(InventoryMenuAPI.createItem()
                 .setName(arena.getDisplayName())
                 .setDescription(cp -> arena.getDescription())
                 .setDisplayItem(cp -> { return new ItemStack(Material.FILLED_MAP); })
-                .setAction(cp -> Spleef.getInstance().queuePlayer(SpleefMode.SPLEGG.getArenaMode(), Spleef.getInstance().getPlayers().get(cp), arena))));
+                .setAction(cp -> Spleef.getInstance().queuePlayer(SpleggMode.CLASSIC.getArenaMode(), Spleef.getInstance().getPlayers().get(cp), arena))));
         
         menuItem.getLinkedContainer().addStaticItem(SpleggGun.createMenu(), 4, 4);
         
-        menuItem.getLinkedContainer().addMenuItem(mapMenuItem, 0);
-        
-        return menuItem;
+        Spleef.getInstance().getSpleggMenu().getLinkedContainer().addMenuItem(menuItem, x, y);
     }
     
 }

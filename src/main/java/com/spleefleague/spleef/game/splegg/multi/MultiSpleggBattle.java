@@ -4,22 +4,19 @@
  * and open the template in the editor.
  */
 
-package com.spleefleague.spleef.game.spleef.multi;
+package com.spleefleague.spleef.game.splegg.multi;
 
 import com.spleefleague.core.chat.Chat;
 import com.spleefleague.core.util.database.DBPlayer;
-import com.spleefleague.spleef.game.SpleefBattle;
+import com.spleefleague.spleef.game.SpleggBattle;
 import java.util.List;
 
 /**
  * @author NickM13
  */
-public class MultiSpleefBattle extends SpleefBattle {
-    
-    protected long FIELD_RESET = 2000;
-    protected long fieldResetTime = 0;
-    
-    public MultiSpleefBattle(List<DBPlayer> players, MultiSpleefArena arena) {
+public class MultiSpleggBattle extends SpleggBattle {
+
+    public MultiSpleggBattle(List<DBPlayer> players, MultiSpleggArena arena) {
         super(players, arena);
     }
     
@@ -39,18 +36,11 @@ public class MultiSpleefBattle extends SpleefBattle {
     }
     
     @Override
-    public void updateField() {
-        if (System.currentTimeMillis() > fieldResetTime) {
-            fillField();
-        }
-    }
-    
-    @Override
     protected void startBattle() {
         super.startBattle();
         chatGroup.addTeam("PlayerCount", Chat.SCORE + "Players");
         for (BattlePlayer bp : battlers.values()) {
-            bp.player.getPlayer().getInventory().addItem(bp.player.getActiveShovel().getItem());
+            //bp.player.getPlayer().getInventory().addItem(bp.player.getActiveShovel().getItem());
         }
     }
     

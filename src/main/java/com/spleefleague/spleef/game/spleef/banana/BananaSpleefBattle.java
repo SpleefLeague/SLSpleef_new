@@ -4,22 +4,20 @@
  * and open the template in the editor.
  */
 
-package com.spleefleague.spleef.game.spleef.multi;
+package com.spleefleague.spleef.game.spleef.banana;
 
 import com.spleefleague.core.chat.Chat;
 import com.spleefleague.core.util.database.DBPlayer;
 import com.spleefleague.spleef.game.SpleefBattle;
+import com.spleefleague.spleef.player.SpleefPlayer;
 import java.util.List;
 
 /**
  * @author NickM13
  */
-public class MultiSpleefBattle extends SpleefBattle {
+public class BananaSpleefBattle extends SpleefBattle {
     
-    protected long FIELD_RESET = 2000;
-    protected long fieldResetTime = 0;
-    
-    public MultiSpleefBattle(List<DBPlayer> players, MultiSpleefArena arena) {
+    public BananaSpleefBattle(List<DBPlayer> players, BananaSpleefArena arena) {
         super(players, arena);
     }
     
@@ -27,22 +25,16 @@ public class MultiSpleefBattle extends SpleefBattle {
     public void updateScoreboard() {
         chatGroup.setScoreboardName(Chat.DEFAULT + getRuntimeString() + "     " + Chat.SCORE + "Score");
         chatGroup.setTeamName("PlayerCount", "Players (" + sortedBattlers.size() + ")");
-        chatGroup.setTeamScore("PlayerCount", playToPoints+1);
-        chatGroup.setTeamScore("PlayTo", playToPoints);
+        chatGroup.setTeamScore("PlayerCount", 1);
         
+        /*
         BattlePlayer bp;
         for (int i = 0; i < sortedBattlers.size() && i < seenScores; i++) {
             bp = sortedBattlers.get(i);
             chatGroup.setTeamName("PLACE" + i, Chat.PLAYER_NAME + bp.player.getName());
             chatGroup.setTeamScore("PLACE" + i, bp.points);
         }
-    }
-    
-    @Override
-    public void updateField() {
-        if (System.currentTimeMillis() > fieldResetTime) {
-            fillField();
-        }
+        */
     }
     
     @Override
@@ -52,6 +44,23 @@ public class MultiSpleefBattle extends SpleefBattle {
         for (BattlePlayer bp : battlers.values()) {
             bp.player.getPlayer().getInventory().addItem(bp.player.getActiveShovel().getItem());
         }
+    }
+    
+    @Override
+    protected void failPlayer(SpleefPlayer sp) {
+        for (BattlePlayer bp : battlers.values()) {
+            if (bp.player.equals(sp)) {
+                gameWorld.doFailBlast(sp.getPlayer());
+                BattlePlayer cbp = getClosestPlayer(bp);
+                if (cbp != null) {
+                    cbp.knockouts++;
+                    sortBattlers();
+                }
+                resetPlayer(bp);
+                break;
+            }
+        }
+        updateScoreboard();
     }
     
 }

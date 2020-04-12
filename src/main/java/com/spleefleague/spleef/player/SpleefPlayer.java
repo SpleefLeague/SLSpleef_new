@@ -62,10 +62,22 @@ public class SpleefPlayer extends DBPlayer<SpleefBattle> {
     
     @DBLoad(fieldname="activeShovel")
     private void loadActiveShovel(Integer id) {
-        Shovel shovel;
-        if ((shovel = Shovel.getShovel(id)) == null)
-            shovel = Shovel.getDefault();
-        setActiveShovel(id);
+        Bukkit.getScheduler().runTaskAsynchronously(Spleef.getInstance(), () -> {
+            Shovel shovel;
+            if ((shovel = Shovel.getShovel(id)) == null)
+                shovel = Shovel.getDefault();
+            activeShovel = shovel;
+            CorePlayer cp = Core.getInstance().getPlayers().get(this);
+            while (cp == null) {
+                try {
+                    Thread.sleep(500L);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(SpleefPlayer.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                cp = Core.getInstance().getPlayers().get(this);
+            }
+            cp.setSelectedItem(shovel.getType(), shovel.getIdentifier());
+        });
     }
     @DBSave(fieldname="activeShovel")
     private Integer saveActiveShovel() {
@@ -192,25 +204,24 @@ public class SpleefPlayer extends DBPlayer<SpleefBattle> {
             if (shovels.contains(id) || (shovel.isDefault())) {
                 //Core.getInstance().sendMessage(this, "Shovel set to " + shovel.getDisplayName());
                 activeShovel = shovel;
-                
+                Bukkit.getScheduler().runTaskAsynchronously(Spleef.getInstance(), () -> {
+                    CorePlayer cp = Core.getInstance().getPlayers().get(this);
+                    while (cp == null) {
+                        try {
+                            Thread.sleep(500L);
+                        } catch (InterruptedException ex) {
+                            Logger.getLogger(SpleefPlayer.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                        cp = Core.getInstance().getPlayers().get(this);
+                    }
+                    cp.setSelectedItem(shovel.getType(), shovel.getIdentifier());
+                });
             } else {
                 //Core.getInstance().sendMessage(this, shovel.getDisplayName() + Chat.DEFAULT + " is not unlocked");
             }
         } else {
             //Core.getInstance().sendMessage(this, "Shovel does not exist");
         }
-        Bukkit.getScheduler().runTaskAsynchronously(Spleef.getInstance(), () -> {
-            CorePlayer cp = Core.getInstance().getPlayers().get(this);
-            while (cp == null) {
-                try {
-                    Thread.sleep(500L);
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(SpleefPlayer.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                cp = Core.getInstance().getPlayers().get(this);
-            }
-            cp.setSelectedItem(shovel.getType(), shovel.getIdentifier());
-        });
     }
     public Shovel getActiveShovel() {
         return activeShovel;

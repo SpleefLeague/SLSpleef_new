@@ -6,18 +6,21 @@
 
 package com.spleefleague.spleef.commands;
 
-import com.spleefleague.core.annotation.CommandAnnotation;
-import com.spleefleague.core.annotation.HelperArg;
-import com.spleefleague.core.annotation.LiteralArg;
-import com.spleefleague.core.annotation.OptionArg;
+import com.spleefleague.core.Core;
+import com.spleefleague.core.command.CommandAnnotation;
+import com.spleefleague.core.command.HelperArg;
+import com.spleefleague.core.command.LiteralArg;
+import com.spleefleague.core.command.OptionArg;
 import com.spleefleague.core.chat.Chat;
 import com.spleefleague.core.command.CommandTemplate;
 import com.spleefleague.core.player.CorePlayer;
 import com.spleefleague.core.player.Rank;
+import com.spleefleague.core.request.ConsoleRequest;
+import com.spleefleague.core.request.Request;
+import com.spleefleague.core.request.RequestManager;
 import com.spleefleague.spleef.Spleef;
 import com.spleefleague.spleef.game.Shovel;
 import com.spleefleague.spleef.player.SpleefPlayer;
-import java.util.List;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 
@@ -52,6 +55,19 @@ public class ShovelCommand extends CommandTemplate {
             sender.getPlayer().getInventory().addItem(Shovel.getShovel(id).getItem());
         } else {
             error(sender, "Shovel already exists!");
+        }
+    }
+    
+    @CommandAnnotation
+    public void shovelDestroy(CorePlayer sender,
+            @LiteralArg(value="destroy") String l,
+            @HelperArg(value="<damage>") Integer id) {
+        if (Shovel.getShovel(id) != null) {
+            RequestManager.sendRequest(Core.getChatPrefix(), "Do you want to destroy shovel " + id + "?", sender, "shoveldestroy", new ConsoleRequest((r, s) -> {
+                Shovel.destroyShovel(id);
+            }));
+        } else {
+            error(sender, "Shovel doesn't exist!");
         }
     }
     

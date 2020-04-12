@@ -25,33 +25,28 @@ public class ClassicSpleefArena extends SpleefArena {
         mode = SpleefMode.CLASSIC.getArenaMode();
     }
     
-    public static InventoryMenuItem createMenu() {
+    public static void createMenu(int x, int y) {
         String mainColor = ChatColor.GREEN + "" + ChatColor.BOLD;
-        InventoryMenuItem spleefMenu = InventoryMenuAPI.createItem()
+        InventoryMenuItem menuItem = InventoryMenuAPI.createItem()
                 .setName(mainColor + "Classic Spleef")
                 .setDescription("The classic version in which you duel a single opponent with a basic diamond shovel.")
                 .setDisplayItem(Material.DIAMOND_SHOVEL, 1561)
                 .createLinkedContainer("Classic Spleef Menu");
         
-        InventoryMenuItem spleefMapMenu = InventoryMenuAPI.createItem()
-                .setName("Map Select: Classic Spleef")
-                .setDisplayItem(new ItemStack(Material.FILLED_MAP))
-                .createLinkedContainer("Map Select: Classic Spleef");
-        
-        spleefMapMenu.getLinkedContainer().addMenuItem(InventoryMenuAPI.createItem()
+        menuItem.getLinkedContainer().addMenuItem(InventoryMenuAPI.createItem()
                 .setName("Random Arena")
                 .setDisplayItem(new ItemStack(Material.EMERALD))
                 .setAction(cp -> Spleef.getInstance().queuePlayer(SpleefMode.CLASSIC.getArenaMode(), Spleef.getInstance().getPlayers().get(cp))));
         
-        getArenas(SpleefMode.CLASSIC.getArenaMode()).forEach((String s, Arena arena) -> spleefMapMenu.getLinkedContainer().addMenuItem(InventoryMenuAPI.createItem()
+        getArenas(SpleefMode.CLASSIC.getArenaMode()).forEach((String s, Arena arena) -> menuItem.getLinkedContainer().addMenuItem(InventoryMenuAPI.createItem()
                 .setName(arena.getDisplayName())
                 .setDescription(cp -> arena.getDescription())
                 .setDisplayItem(cp -> { return new ItemStack(Material.FILLED_MAP); })
                 .setAction(cp -> Spleef.getInstance().queuePlayer(SpleefMode.CLASSIC.getArenaMode(), Spleef.getInstance().getPlayers().get(cp), arena))));
         
-        spleefMenu.getLinkedContainer().addMenuItem(spleefMapMenu, 0);
+        menuItem.getLinkedContainer().addMenuItem(menuItem, 0);
         
-        return spleefMenu;
+        Spleef.getInstance().getSpleefMenu().getLinkedContainer().addMenuItem(menuItem, x, y);
     }
     
 }

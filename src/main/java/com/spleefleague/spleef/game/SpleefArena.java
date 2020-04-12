@@ -50,6 +50,15 @@ public class SpleefArena extends Arena {
             } catch(IllegalArgumentException e) {
                 System.err.println(arenas.get("_id") + " is not a valid spleef mode.");
             }
+            
+            try {
+                ArenaMode mode = SpleggMode.valueOf(arenas.get("_id", String.class)).getArenaMode();
+                int amount = 0;
+                amount = loadArenas(arenaInstances, mode);
+                if (amount > 0) System.out.println("Loaded " + amount + " " + mode.getDisplayName() + " arenas.");
+            } catch(IllegalArgumentException e) {
+                System.err.println(arenas.get("_id") + " is not a valid splegg mode.");
+            }
         }
     }
     

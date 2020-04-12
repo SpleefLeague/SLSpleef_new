@@ -50,6 +50,13 @@ public class Shovel extends VendorItem {
         }
     }
     
+    // Better name? I don't think so
+    public static void unsave(int damage) {
+        if (shovelCollection.find(new Document("damage", damage)).first() != null) {
+            shovelCollection.deleteMany(new Document("damage", damage));
+        }
+    }
+    
     public static boolean isShovel(ItemStack item) {
         if (item != null && item.getType().equals(Material.DIAMOND_SHOVEL)) {
             int id = ((Damageable) item.getItemMeta()).getDamage();
@@ -58,23 +65,34 @@ public class Shovel extends VendorItem {
         return false;
     }
     
-    public static boolean createShovel(int damage) {
-        if (shovels.containsKey(damage)) return false;
-        Shovel shovel = new Shovel(damage);
-        shovels.put(damage, shovel);
+    public static boolean createShovel(int id) {
+        if (shovels.containsKey(id)) return false;
+        Shovel shovel = new Shovel(id);
+        shovels.put(id, shovel);
         Shovel.save(shovel);
         VendorItem.addVendorItem(shovel);
         return true;
     }
     
-    public static Shovel getShovel(int id) {
-        return shovels.get(id);
-    }
-    public static String getShovelName(int id) {
-        if (shovels.containsKey(id)) {
-            return shovels.get(id).getDisplayName() + Chat.DEFAULT;
+    public static boolean destroyShovel(int damage) {
+        if (shovels.containsKey(damage)) {
+            VendorItem.removeVendorItem(shovels.get(damage));
+            shovels.remove(damage);
+            Shovel.unsave(damage);
+            return true;
+        } else {
+            return false;
         }
-        return "" + id;
+    }
+    
+    public static Shovel getShovel(int damage) {
+        return shovels.get(damage);
+    }
+    public static String getShovelName(int damage) {
+        if (shovels.containsKey(damage)) {
+            return shovels.get(damage).getDisplayName() + Chat.DEFAULT;
+        }
+        return "" + damage;
     }
     
     public static Shovel getDefault() {

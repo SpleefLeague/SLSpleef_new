@@ -4,8 +4,9 @@
  * and open the template in the editor.
  */
 
-package com.spleefleague.spleef.game.splegg.classic;
+package com.spleefleague.spleef.game;
 
+import com.spleefleague.spleef.game.SpleggArena;
 import com.spleefleague.core.player.BattleState;
 import com.spleefleague.core.util.database.DBPlayer;
 import com.spleefleague.core.world.projectile.FakeProjectile;

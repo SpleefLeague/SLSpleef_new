@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package com.spleefleague.spleef.game.team;
+package com.spleefleague.spleef.game.spleef.team;
 
 import com.spleefleague.core.util.database.DBPlayer;
 import com.spleefleague.spleef.game.SpleefBattleTeam;

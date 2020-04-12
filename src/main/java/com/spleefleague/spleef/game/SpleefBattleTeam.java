@@ -231,7 +231,8 @@ public class SpleefBattleTeam extends SpleefBattle {
     @Override
     protected void failPlayer(SpleefPlayer sp) {
         for (BattlePlayer bp : battlers.values()) {
-            if (bp.player.equals(sp) && !bp.fallen) {
+            if (bp.player.equals(sp)) {
+                if (bp.fallen) return;
                 bp.fallen = true;
                 BattleTeam team = playerTeamMap.get(sp);
                 team.remainingPlayers--;

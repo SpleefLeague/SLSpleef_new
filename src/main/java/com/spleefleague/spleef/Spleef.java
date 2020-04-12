@@ -19,13 +19,16 @@ import com.spleefleague.spleef.game.Shovel;
 import com.spleefleague.spleef.game.SpleefField;
 import com.spleefleague.spleef.player.SpleefPlayer;
 import com.spleefleague.spleef.game.SpleefMode;
+import com.spleefleague.spleef.game.SpleggMode;
+import com.spleefleague.spleef.game.spleef.banana.BananaSpleefArena;
 import com.spleefleague.spleef.game.splegg.classic.SpleggGun;
 import com.spleefleague.spleef.game.spleef.classic.ClassicSpleefArena;
 import com.spleefleague.spleef.game.spleef.multi.MultiSpleefArena;
 import com.spleefleague.spleef.game.spleef.power.Power;
 import com.spleefleague.spleef.game.spleef.power.PowerSpleefArena;
-import com.spleefleague.spleef.game.splegg.classic.SpleggArena;
-import com.spleefleague.spleef.game.team.TeamSpleefArena;
+import com.spleefleague.spleef.game.splegg.classic.ClassicSpleggArena;
+import com.spleefleague.spleef.game.splegg.multi.MultiSpleggArena;
+import com.spleefleague.spleef.game.spleef.team.TeamSpleefArena;
 import org.bukkit.Material;
 
 /**
@@ -54,16 +57,21 @@ public class Spleef extends CorePlugin<SpleefPlayer> {
         
         // Load Spleef gamemodes
         SpleefMode.init();
+        addBattleManager(SpleefMode.BONANZA.getArenaMode());
         addBattleManager(SpleefMode.CLASSIC.getArenaMode());
         addBattleManager(SpleefMode.MULTI.getArenaMode());
-        addBattleManager(SpleefMode.SPLEGG.getArenaMode());
         addBattleManager(SpleefMode.POWER.getArenaMode());
         addBattleManager(SpleefMode.TEAM.getArenaMode());
+        
+        // Load Splegg gamemodes
+        SpleggMode.init();
+        addBattleManager(SpleggMode.CLASSIC.getArenaMode());
+        addBattleManager(SpleggMode.MULTI.getArenaMode());
+        initMenu();
         
         // Load database related static lists
         SpleefField.init();
         SpleefArena.init();
-        initMenu();
     }
     
     @Override
@@ -90,12 +98,12 @@ public class Spleef extends CorePlugin<SpleefPlayer> {
                 .createLinkedContainer("Spleef Menu");
         
         spleefMenuItem.getLinkedContainer().addMenuItem(InventoryMenuAPI.createLockedMenuItem("Other"), 0, 2);
-        spleefMenuItem.getLinkedContainer().addMenuItem(InventoryMenuAPI.createLockedMenuItem("Other"), 1, 3);
-        spleefMenuItem.getLinkedContainer().addMenuItem(InventoryMenuAPI.createLockedMenuItem("Bow Spleef"), 2, 2);
-        spleefMenuItem.getLinkedContainer().addMenuItem(TeamSpleefArena.createMenu(), 3, 3);
-        spleefMenuItem.getLinkedContainer().addMenuItem(ClassicSpleefArena.createMenu(), 4, 2);
-        spleefMenuItem.getLinkedContainer().addMenuItem(MultiSpleefArena.createMenu(), 5, 3);
-        spleefMenuItem.getLinkedContainer().addMenuItem(PowerSpleefArena.createMenu(), 6, 2);
+        spleefMenuItem.getLinkedContainer().addMenuItem(InventoryMenuAPI.createLockedMenuItem("Bow Spleef"), 1, 3);
+        BananaSpleefArena.createMenu(2, 2);
+        TeamSpleefArena.createMenu(3, 3);
+        ClassicSpleefArena.createMenu(4, 2);
+        MultiSpleefArena.createMenu(5, 3);
+        PowerSpleefArena.createMenu(6, 2);
         spleefMenuItem.getLinkedContainer().addMenuItem(InventoryMenuAPI.createLockedMenuItem("Other"), 7, 3);
         spleefMenuItem.getLinkedContainer().addMenuItem(InventoryMenuAPI.createLockedMenuItem("Other"), 8, 2);
         spleefMenuItem.getLinkedContainer().addStaticItem(Shovel.createMenu(), 4, 4);
@@ -111,8 +119,8 @@ public class Spleef extends CorePlugin<SpleefPlayer> {
         spleggMenuItem.getLinkedContainer().addMenuItem(InventoryMenuAPI.createLockedMenuItem("Other"), 1, 3);
         spleggMenuItem.getLinkedContainer().addMenuItem(InventoryMenuAPI.createLockedMenuItem("Other"), 2, 2);
         spleggMenuItem.getLinkedContainer().addMenuItem(InventoryMenuAPI.createLockedMenuItem("TeamSplegg"), 3, 3);
-        spleggMenuItem.getLinkedContainer().addMenuItem(SpleggArena.createMenu(), 4, 2);
-        spleggMenuItem.getLinkedContainer().addMenuItem(InventoryMenuAPI.createLockedMenuItem("MultiSplegg"), 5, 3);
+        ClassicSpleggArena.createMenu(4, 2);
+        MultiSpleggArena.createMenu(5, 3);
         spleggMenuItem.getLinkedContainer().addMenuItem(InventoryMenuAPI.createLockedMenuItem("Other"), 6, 2);
         spleggMenuItem.getLinkedContainer().addMenuItem(InventoryMenuAPI.createLockedMenuItem("Other"), 7, 3);
         spleggMenuItem.getLinkedContainer().addMenuItem(InventoryMenuAPI.createLockedMenuItem("Other"), 8, 2);
@@ -124,6 +132,7 @@ public class Spleef extends CorePlugin<SpleefPlayer> {
     public void initCommands() {
         Core.getInstance().addCommand(new ShovelCommand());
         Core.getInstance().addCommand(new SpleefCommand());
+        Core.getInstance().addCommand(new SpleggCommand());
         
         Core.getInstance().flushCommands();
     }
